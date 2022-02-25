@@ -2,13 +2,14 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-# TODO: Set this  with the path to your assignments rep.  Use ssh protocol and see lecture notes
+# Set this with the path to your assignments rep.  Use ssh protocol and see lecture notes
 # about how to setup ssh-agent for passwordless access
-# SRC_URI = "git://git@github.com/cu-ecen-aeld/<your assignments repo>;protocol=ssh;branch=master"
+SRC_URI = "git://git@github.com/cu-ecen-aeld/assignments-3-and-later-kejo1166.git;protocol=ssh;branch=master"
 
 PV = "1.0+git${SRCPV}"
-# TODO: set to reference a specific commit hash in your assignment repo
-#SRCREV = "f99b82a5d4cb2a22810104f89d4126f52f4dfaba"
+# Set to reference a specific commit hash in your assignment repo
+
+SRCREV = "40759cc67f22bc40a65571fd84ce423cc2f64571"  
 
 # This sets your staging directory based on WORKDIR, where WORKDIR is defined at 
 # https://www.yoctoproject.org/docs/latest/ref-manual/ref-manual.html#var-WORKDIR
@@ -16,11 +17,17 @@ PV = "1.0+git${SRCPV}"
 # in your assignments repo
 S = "${WORKDIR}/git/server"
 
-# TODO: Add the aesdsocket application and any other files you need to install
+# Add the aesdsocket application and any other files you need to install
 # See http://git.yoctoproject.org/cgit.cgi/poky/plain/meta/conf/bitbake.conf?h=warrior for yocto path prefixes
-#FILES_${PN} += "${bindir}/aesdsocket"
-# TODO: customize these as necessary for any libraries you need for your application
-#TARGET_LDFLAGS += "-pthread -lrt"
+FILES_${PN} += "${bindir}/aesdsocket"
+
+# customize these as necessary for any libraries you need for your application
+TARGET_LDFLAGS += "-pthread -lrt"
+RDEPENDS_${PN} = "libgcc"
+
+INITSCRIPT_PACKAGES = "${PN}"
+INITSCRIPT_NAME_${PN} = "aesdsocket-start-stop.sh"
+inherit update-rc.d
 
 do_configure () {
 	:
@@ -31,11 +38,16 @@ do_compile () {
 }
 
 do_install () {
-	# TODO: Install your binaries/scripts here.
+	# Install your binaries/scripts here.
 	# Be sure to install the target directory with install -d first
 	# Yocto variables ${D} and ${S} are useful here, which you can read about at 
 	# https://www.yoctoproject.org/docs/latest/ref-manual/ref-manual.html#var-D
 	# and
 	# https://www.yoctoproject.org/docs/latest/ref-manual/ref-manual.html#var-S
 	# See example at https://github.com/cu-ecen-aeld/ecen5013-yocto/blob/ecen5013-hello-world/meta-ecen5013/recipes-ecen5013/ecen5013-hello-world/ecen5013-hello-world_git.bb
+  
+  install -m 0755 -d ${D}${bindir}
+  install -m 0755 ${S}/aesdsocket ${D}${bindir}/
+  install -m 0755 -d ${D}${sysconfdir}/init.d
+  install -m 0755 ${S}/aesdsocket-start-stop.sh ${D}${sysconfdir}/init.d
 }
